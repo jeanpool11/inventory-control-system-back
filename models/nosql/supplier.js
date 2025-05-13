@@ -1,13 +1,12 @@
 const mongoose = require("mongoose");
 const mongooseDelete = require("mongoose-delete");
 
-const UserSchema = new mongoose.Schema(
+const SupplierSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     phone: { type: Number, required: true  },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    role: { type: String, enum: ["seller", "admin"], default: "seller" },
+    address: { type: String, required: true },
   },
   {
     timestamps: true,
@@ -15,6 +14,6 @@ const UserSchema = new mongoose.Schema(
   }
 );
 
-UserSchema.plugin(mongooseDelete, { overrideMethods: true, deletedAt: true });
+SupplierSchema.plugin(mongooseDelete, { overrideMethods: true, deletedAt: true });
 
-module.exports = mongoose.model("user", UserSchema);
+module.exports = mongoose.model("supplier", SupplierSchema);
