@@ -1,96 +1,97 @@
-const { handleHttpError, handleErrorResponse } = require("../utils/handleError");
-const { ProductModel } = require("../models");
-const { matchedData } = require("express-validator");
+const { matchedData } = require('express-validator');
+const {
+  handleHttpError,
+  handleErrorResponse,
+} = require('../utils/handleError');
 
-// Crear producto
+const ProductDao = require('../daos/productDao');
+
+/* ---------------------------------------------------- */
+/*  Crear producto                                      */
+/* ---------------------------------------------------- */
 const createProduct = async (req, res) => {
   try {
     const body = matchedData(req);
-    
-    // Verificar si el código del producto ya existe
-    const exists = await ProductModel.findOne({ code: body.code });
-    if (exists) return handleErrorResponse(res, "PRODUCT_CODE_EXISTS", 409);
 
-    const data = await ProductModel.create(body);
-    res.status(201).json({ message: "Producto creado correctamente", data });
+    const exists = await ProductDao.findByCode(body.code);
+    if (exists) return handleErrorResponse(res, 'PRODUCT_CODE_EXISTS', 409);
+
+    const data = await ProductDao.create(body);
+    return res
+      .status(201)
+      .json({ message: 'Producto creado correctamente', data });
   } catch (e) {
     handleHttpError(res, e);
   }
 };
 
-// Actualizar producto
+/* ---------------------------------------------------- */
+/*  Actualizar producto                                 */
+/* ---------------------------------------------------- */
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const body = matchedData(req);
+    const body   = matchedData(req);
 
-    const exists = await ProductModel.findOne({ code: body.code, _id: { $ne: id } });
-    if (exists) return handleErrorResponse(res, "PRODUCT_CODE_ALREADY_USED", 409);
+    const exists = await ProductDao.existsCodeExceptId(body.code, id);
+    if (exists) return handleErrorResponse(res, 'PRODUCT_CODE_ALREADY_USED', 409);
 
-    const data = await ProductModel.findByIdAndUpdate(id, body, {
-      new: true,
-      runValidators: true,
-    });
+    const data = await ProductDao.updateById(id, body);
+    if (!data) return handleErrorResponse(res, 'PRODUCT_NOT_FOUND', 404);
 
-    if (!data) return handleErrorResponse(res, "PRODUCT_NOT_FOUND", 404);
-
-    res.json({ message: "Producto actualizado", data });
+    return res.json({ message: 'Producto actualizado', data });
   } catch (e) {
     handleHttpError(res, e);
   }
 };
 
-// Obtener productos (activos) con datos del proveedor y estado del stock
-const getProducts = async (req, res) => {
+/* ---------------------------------------------------- */
+/*  Obtener productos activos + estado de stock         */
+/* ---------------------------------------------------- */
+const getProducts = async (_req, res) => {
   try {
-    const products = await ProductModel.find({ deleted: { $ne: true } }).populate("supplier").lean();
+    const products = await ProductDao.findActiveWithSupplier();
 
-    // Agregar campo 'status' según stock
-    const data = products.map((product) => {
-      let status = "suficiente"; // 🟢
-      if (product.stock <= product.minStock) {
-        status = "crítico"; // 🔴
-      } else if (product.stock > product.minStock && product.stock <= product.maxStock) {
-        status = "moderado"; // 🟡
-      }
-
-      return {
-        ...product,
-        status,
-      };
+    const data = products.map((p) => {
+      let status = 'suficiente';          // 🟢
+      if (p.stock <= p.minStock)                   status = 'crítico';   // 🔴
+      else if (p.stock <= p.maxStock)              status = 'moderado';  // 🟡
+      return { ...p, status };
     });
 
-    res.json({ data });
+    return res.json({ data });
   } catch (e) {
     handleHttpError(res, e);
   }
 };
 
-// Eliminación lógica
+/* ---------------------------------------------------- */
+/*  Eliminación lógica                                  */
+/* ---------------------------------------------------- */
 const softDeleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const data = await ProductModel.delete({ _id: id });
+    const result = await ProductDao.softDeleteById(id);
 
-    if (!data) return handleErrorResponse(res, "PRODUCT_NOT_FOUND", 404);
-
-    res.json({ message: "Producto eliminado lógicamente" });
+    if (!result) return handleErrorResponse(res, 'PRODUCT_NOT_FOUND', 404);
+    return res.json({ message: 'Producto eliminado lógicamente' });
   } catch (e) {
     handleHttpError(res, e);
   }
 };
 
-// Eliminación física
+/* ---------------------------------------------------- */
+/*  Eliminación física                                  */
+/* ---------------------------------------------------- */
 const hardDeleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const data = await ProductModel.deleteOne({ _id: id });
+    const result = await ProductDao.hardDeleteById(id);
 
-    if (!data || data.deletedCount === 0) {
-      return handleErrorResponse(res, "PRODUCT_NOT_FOUND", 404);
-    }
+    if (!result || result.deletedCount === 0)
+      return handleErrorResponse(res, 'PRODUCT_NOT_FOUND', 404);
 
-    res.json({ message: "Producto eliminado permanentemente" });
+    return res.json({ message: 'Producto eliminado permanentemente' });
   } catch (e) {
     handleHttpError(res, e);
   }

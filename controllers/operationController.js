@@ -1,64 +1,64 @@
-const { matchedData } = require("express-validator");
-const { OperationModel, ProductModel } = require("../models");
-const { handleHttpError, handleErrorResponse } = require("../utils/handleError");
+const { matchedData } = require('express-validator');
+const {
+  handleHttpError,
+  handleErrorResponse,
+} = require('../utils/handleError');
 
-// Crear operación
+const OperationDao = require('../daos/operationDao');
+const ProductDao   = require('../daos/productDao');
+
+/* --------------------------------------------------------- */
+/*  Crear operación (pedido o devolución)                    */
+/* --------------------------------------------------------- */
 const createOperation = async (req, res) => {
   try {
-    const body = matchedData(req);
-    const { type, product, quantity, description } = body;
+    const { type, product, quantity, description } = matchedData(req);
 
-    // Buscar producto
-    const productData = await ProductModel.findById(product);
-    if (!productData) {
-      return handleErrorResponse(res, "PRODUCT_NOT_FOUND", 404);
-    }
+    // 1. Verificar existencia de producto
+    const productDoc = await ProductDao.findById(product);
+    if (!productDoc)
+      return handleErrorResponse(res, 'PRODUCT_NOT_FOUND', 404);
 
-    // Verificar stock en pedidos
-    if (type === "pedido" && productData.stock < quantity) {
-      return handleErrorResponse(res, "STOCK_INSUFFICIENT", 400);
-    }
+    // 2. Validar stock para pedido
+    if (type === 'pedido' && productDoc.stock < quantity)
+      return handleErrorResponse(res, 'STOCK_INSUFFICIENT', 400);
 
-    // Ajustar stock
-    const newStock = type === "pedido"
-      ? productData.stock - quantity
-      : productData.stock + quantity;
+    // 3. Ajustar stock
+    const updated =
+      type === 'pedido'
+        ? await ProductDao.decreaseStock(product, quantity)
+        : await ProductDao.increaseStock(product, quantity);
 
-    productData.stock = newStock;
-    await productData.save();
+    // 4. Generar código correlativo
+    const count   = await OperationDao.countAll();
+    const newCode = `OP-${(count + 1).toString().padStart(4, '0')}`; // OP-0001
 
-    // Generar código automáticamente
-    const count = await OperationModel.countDocuments(); // total de operaciones actuales
-    const newCode = `OP-${(count + 1).toString().padStart(4, "0")}`; // ej: OP-0001
-
-    // Registrar operación
-    const data = await OperationModel.create({
+    // 5. Registrar operación
+    const data = await OperationDao.create({
       code: newCode,
       type,
       product,
       quantity,
-      description
+      description,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: `Operación '${type}' registrada correctamente`,
       data,
+      newStock: updated.stock,
     });
-
   } catch (e) {
     handleHttpError(res, e);
   }
 };
 
-
-// Obtener historial (kardex)
-const getOperations = async (req, res) => {
+/* --------------------------------------------------------- */
+/*  Obtener historial (kardex)                               */
+/* --------------------------------------------------------- */
+const getOperations = async (_req, res) => {
   try {
-    const data = await OperationModel.find()
-      .populate("product")
-      .sort({ createdAt: -1 }); // orden más reciente primero
-
-    res.json({ data });
+    const data = await OperationDao.findAllWithProduct();
+    return res.json({ data });
   } catch (e) {
     handleHttpError(res, e);
   }
