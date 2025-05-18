@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const { createSeller, getSellers, hardDeleteSeller, softDeleteSeller, updateSeller } = require("../controllers/userController");
-const { validateRegisterSeller } = require("../validators/userValidators");
+const { createUser, getUsers, hardDeleteUser, softDeleteUser, updateUser } = require("../controllers/userController");
+const { validateRegisterUser } = require("../validators/userValidators");
 
 /**
  * Register new user
@@ -29,10 +29,10 @@ const { validateRegisterSeller } = require("../validators/userValidators");
  *        description: retorna el objeto insertado en la coleccion con stado '201'
  * 
  */
-router.post("/create", validateRegisterSeller, createSeller);         // Crear
-router.get("/list", getSellers);                                      // Listar activos
-router.put("/update/:id", validateRegisterSeller, updateSeller);      // Actualizar
-router.delete("/delete/:id", softDeleteSeller);                       // Eliminar lógica
-router.delete("/delete-hard/:id", hardDeleteSeller);                  // Eliminar física
+router.post("/create", validateRegisterUser, createUser);         // Crear
+router.get("/list", getUsers);                                      // Listar activos
+router.put("/update/:id", validateRegisterUser, updateUser);      // Actualizar
+router.delete("/delete/:id", softDeleteUser);                       // Eliminar lógica
+router.delete("/delete-hard/:id", hardDeleteUser);                  // Eliminar física
 
 module.exports = router;

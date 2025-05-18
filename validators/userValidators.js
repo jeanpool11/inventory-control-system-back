@@ -1,7 +1,7 @@
 const { check } = require("express-validator");
 const { validateResult } = require("../utils/handleValidator");
 
-const validateRegisterSeller = [
+const validateRegisterUser = [
   check("name").exists().notEmpty(),
   check("phone").exists().notEmpty().isNumeric(),
   check("email").exists().notEmpty().isEmail(),
@@ -9,4 +9,4 @@ const validateRegisterSeller = [
   (req, res, next) => validateResult(req, res, next),
 ];
 
-module.exports = { validateRegisterSeller };
+module.exports = { validateRegisterUser };

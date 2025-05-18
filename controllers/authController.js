@@ -1,12 +1,9 @@
-const { compare } = require("../utils/handleJwt");
-const {
-  handleHttpError,
-  handleErrorResponse,
-} = require("../utils/handleError");
-const { tokenSign } = require("../utils/handleToken");
+const { matchedData } = require('express-validator');
+const { compare }     = require('../utils/handleJwt');
+const { tokenSign }   = require('../utils/handleToken');
+const { handleErrorResponse } = require('../utils/handleError');
 
-const { UserModel } = require("../models");
-const { matchedData } = require("express-validator");
+const UserDao = require('../daos/userDao');     // ← usamos DAO directo
 
 /**
  * Controller for login
@@ -14,33 +11,27 @@ const { matchedData } = require("express-validator");
  * @param {*} res
  * @returns
  */
+
+
 const loginCtrl = async (req, res) => {
   try {
-    const body = matchedData(req);
-    const user = await UserModel.findOne({ email: body.email });
-    if (!user) {
-      handleErrorResponse(res, "USER_NOT_EXISTS", 404);
-      return;
-    }
-    const checkPassword = await compare(body.password, user.password);
+    const { email, password } = matchedData(req);
 
-    if (!checkPassword) {
-      handleErrorResponse(res, "PASSWORD_INVALID", 402);
-      return;
-    }
+    // 1. Buscar usuario
+    const user = await UserDao.findByEmail(email);
+    if (!user) return handleErrorResponse(res, 'USER_NOT_EXISTS', 404);
 
-    const tokenJwt = await tokenSign(user);
+    // 2. Comparar contraseña
+    const ok = await compare(password, user.password);
+    if (!ok)   return handleErrorResponse(res, 'PASSWORD_INVALID', 402);
 
-    const data = {
-      token: tokenJwt,
-      user: user,
-    };
+    // 3. Generar token
+    const token = await tokenSign(user);
 
-    res.send({ data });
+    res.send({ data: { token, user } });
   } catch (e) {
-    console.error("LOGIN ERROR:", e);
-res.status(500).json({ error: e.message || "INTERNAL_ERROR" });
-
+    console.error('LOGIN ERROR:', e);
+    res.status(500).json({ error: 'INTERNAL_ERROR' });
   }
 };
 

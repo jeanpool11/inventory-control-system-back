@@ -1,91 +1,98 @@
-const { encrypt } = require("../utils/handleJwt");
+const { encrypt } = require('../utils/handleJwt');
+const { matchedData } = require('express-validator');
 const {
-  handleHttpError,
   handleErrorResponse,
-} = require("../utils/handleError");
+  handleHttpError,
+} = require('../utils/handleError');
 
-const { UserModel } = require("../models");
-const { matchedData } = require("express-validator");
+const UserDao = require('../daos/userDao');          // ← DAO
 
-// Crear vendedor
-const createSeller = async (req, res) => {
+/* ------------------------------------------------------------------ */
+/*  Crear vendedor                                                    */
+/* ------------------------------------------------------------------ */
+const createUser = async (req, res) => {
   try {
     const body = matchedData(req);
-    const exists = await UserModel.findOne({ email: body.email });
-    if (exists) return handleErrorResponse(res, "SELLER_EXISTS", 409);
 
+    // 1. ¿Ya existe un usuario con ese e-mail?
+    const exists = await UserDao.findByEmail(body.email);
+    if (exists) return handleErrorResponse(res, 'USER_EXISTS', 409);
+
+    // 2. Encriptar contraseña y forzar rol "seller"
     const password = await encrypt(body.password);
-    const data = await UserModel.create({ ...body, password });
-    res.status(201).json({ data });
+    const data = await UserDao.create({ ...body, password, role: 'seller' });
+
+    return res.status(201).json({ data });
   } catch (e) {
     handleHttpError(res, e);
   }
 };
 
-const updateSeller = async (req, res) => {
-    try {
-      const { id } = req.params;
-      const body = matchedData(req);
-  
-      // Eliminar el campo 'role' si se envía
-      if (body.role) delete body.role;
-  
-      // Si actualiza la contraseña, la encriptamos
-      if (body.password) {
-        body.password = await encrypt(body.password);
-      }
-  
-      const data = await UserModel.findByIdAndUpdate(id, body, {
-        new: true,
-        runValidators: true,
-      });
-  
-      if (!data) return handleErrorResponse(res, "SELLER_NOT_FOUND", 404);
-  
-      res.json({ message: "Vendedor actualizado", data });
-    } catch (e) {
-      handleHttpError(res, e);
-    }
-  };
-  
-
-// Listar solo vendedores activos (no eliminados lógicamente)
-const getSellers = async (req, res) => {
-    try {
-      const data = await UserModel.find({ deleted: { $ne: true } }); // solo activos
-      res.json({ data });
-    } catch (e) {
-      handleHttpError(res, e);
-    }
-  };
-  
-
-// Eliminación lógica
-const softDeleteSeller = async (req, res) => {
+/* ------------------------------------------------------------------ */
+/*  Actualizar vendedor                                               */
+/* ------------------------------------------------------------------ */
+const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    await UserModel.delete({ _id: id });
-    res.json({ message: "Vendedor eliminado lógicamente" });
+    const body = matchedData(req);
+
+    // No se permite cambiar el rol desde esta ruta
+    if (body.role) delete body.role;
+
+    // Si se actualiza la contraseña, encriptarla
+    if (body.password) body.password = await encrypt(body.password);
+
+    const data = await UserDao.updateById(id, body); // new: true en DAO
+    if (!data) return handleErrorResponse(res, 'USER_NOT_FOUND', 404);
+
+    return res.json({ message: 'Usuario actualizado', data });
   } catch (e) {
     handleHttpError(res, e);
   }
 };
 
-// Eliminación física
-const hardDeleteSeller = async (req, res) => {
+/* ------------------------------------------------------------------ */
+/*  Listar vendedores activos                                         */
+/* ------------------------------------------------------------------ */
+const getUsers = async (_req, res) => {
+  try {
+    const data = await UserDao.findActive();         // excluye borrados
+    return res.json({ data });
+  } catch (e) {
+    handleHttpError(res, e);
+  }
+};
+
+/* ------------------------------------------------------------------ */
+/*  Eliminación lógica                                                */
+/* ------------------------------------------------------------------ */
+const softDeleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-    await UserModel.deleteOne({ _id: id });
-    res.json({ message: "Vendedor eliminado permanentemente" });
+    await UserDao.softDeleteById(id);
+    return res.json({ message: 'User eliminado lógicamente' });
+  } catch (e) {
+    handleHttpError(res, e);
+  }
+};
+
+/* ------------------------------------------------------------------ */
+/*  Eliminación física                                                */
+/* ------------------------------------------------------------------ */
+const hardDeleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await UserDao.hardDeleteById(id);
+    return res.json({ message: 'User eliminado permanentemente' });
   } catch (e) {
     handleHttpError(res, e);
   }
 };
 
 module.exports = {
-  createSeller,
-  updateSeller,
-  getSellers,
-  softDeleteSeller,
-  hardDeleteSeller,
+  createUser,
+  updateUser,
+  getUsers,
+  softDeleteUser,
+  hardDeleteUser,
 };
