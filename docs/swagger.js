@@ -29,8 +29,7 @@ const options = {
 
   // Archivos donde swagger-jsdoc buscará anotaciones
   apis: [
-    './routes/*.js',   
-    './docs/*.js', 
+    './routes/*.js',
   ],
 };
 

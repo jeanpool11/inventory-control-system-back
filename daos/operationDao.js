@@ -1,5 +1,4 @@
-// daos/operationDao.js
-const OperationModel = require('../models/nosql/operation');
+const { OperationModel  }= require('../models');
 
 class OperationDao {
   /* ------------------ Lectura ------------------ */

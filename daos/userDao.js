@@ -1,8 +1,8 @@
-// daos/userDao.js
+
 //--------------------------------------------------------------------
 //  Encapsula TODA la interacción con Mongoose para la entidad “User”
 //--------------------------------------------------------------------
-const UserModel = require('../models/nosql/user');
+const { UserModel } = require('../models');
 
 class UserDao {
   /* --------------------------------------------------------------- */

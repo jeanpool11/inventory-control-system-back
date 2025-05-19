@@ -1,5 +1,4 @@
-// daos/productDao.js
-const ProductModel = require('../models/nosql/product');
+const { ProductModel } = require('../models');
 
 class ProductDao {
   /* ---------- Lectura ---------- */

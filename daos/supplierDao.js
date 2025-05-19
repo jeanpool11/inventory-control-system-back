@@ -1,5 +1,4 @@
-// daos/supplierDao.js
-const SupplierModel = require('../models/nosql/supplier');
+const { SupplierModel } = require('../models');
 
 class SupplierDao {
   /* ------------------ Lectura ------------------ */
