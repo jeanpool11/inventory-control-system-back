@@ -4,95 +4,57 @@ const {
   handleErrorResponse,
 } = require('../utils/handleError');
 
-const ProductDao = require('../daos/productDao');
+const ProductService = require('../services/productService');
 
-/* ---------------------------------------------------- */
-/*  Crear producto                                      */
-/* ---------------------------------------------------- */
 const createProduct = async (req, res) => {
   try {
     const body = matchedData(req);
-
-    const exists = await ProductDao.findByCode(body.code);
-    if (exists) return handleErrorResponse(res, 'PRODUCT_CODE_EXISTS', 409);
-
-    const data = await ProductDao.create(body);
-    return res
-      .status(201)
-      .json({ message: 'Producto creado correctamente', data });
+    const data = await ProductService.createProduct(body);
+    res.status(201).json({ message: 'Producto creado correctamente', data });
   } catch (e) {
+    if (e.message === 'PRODUCT_CODE_EXISTS') return handleErrorResponse(res, e.message, 409);
     handleHttpError(res, e);
   }
 };
 
-/* ---------------------------------------------------- */
-/*  Actualizar producto                                 */
-/* ---------------------------------------------------- */
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const body   = matchedData(req);
-
-    const exists = await ProductDao.existsCodeExceptId(body.code, id);
-    if (exists) return handleErrorResponse(res, 'PRODUCT_CODE_ALREADY_USED', 409);
-
-    const data = await ProductDao.updateById(id, body);
-    if (!data) return handleErrorResponse(res, 'PRODUCT_NOT_FOUND', 404);
-
-    return res.json({ message: 'Producto actualizado', data });
+    const body = matchedData(req);
+    const data = await ProductService.updateProduct(id, body);
+    res.json({ message: 'Producto actualizado', data });
   } catch (e) {
+    if (['PRODUCT_CODE_ALREADY_USED', 'PRODUCT_NOT_FOUND'].includes(e.message))
+      return handleErrorResponse(res, e.message, 409);
     handleHttpError(res, e);
   }
 };
 
-/* ---------------------------------------------------- */
-/*  Obtener productos activos + estado de stock         */
-/* ---------------------------------------------------- */
 const getProducts = async (_req, res) => {
   try {
-    const products = await ProductDao.findActiveWithSupplier();
-
-    const data = products.map((p) => {
-      let status = 'suficiente';          // 🟢
-      if (p.stock <= p.minStock)                   status = 'crítico';   // 🔴
-      else if (p.stock <= p.maxStock)              status = 'moderado';  // 🟡
-      return { ...p, status };
-    });
-
-    return res.json({ data });
+    const data = await ProductService.getActiveProducts();
+    res.json({ data });
   } catch (e) {
     handleHttpError(res, e);
   }
 };
 
-/* ---------------------------------------------------- */
-/*  Eliminación lógica                                  */
-/* ---------------------------------------------------- */
 const softDeleteProduct = async (req, res) => {
   try {
-    const { id } = req.params;
-    const result = await ProductDao.softDeleteById(id);
-
-    if (!result) return handleErrorResponse(res, 'PRODUCT_NOT_FOUND', 404);
-    return res.json({ message: 'Producto eliminado lógicamente' });
+    await ProductService.softDeleteProduct(req.params.id);
+    res.json({ message: 'Producto eliminado lógicamente' });
   } catch (e) {
+    if (e.message === 'PRODUCT_NOT_FOUND') return handleErrorResponse(res, e.message, 404);
     handleHttpError(res, e);
   }
 };
 
-/* ---------------------------------------------------- */
-/*  Eliminación física                                  */
-/* ---------------------------------------------------- */
 const hardDeleteProduct = async (req, res) => {
   try {
-    const { id } = req.params;
-    const result = await ProductDao.hardDeleteById(id);
-
-    if (!result || result.deletedCount === 0)
-      return handleErrorResponse(res, 'PRODUCT_NOT_FOUND', 404);
-
-    return res.json({ message: 'Producto eliminado permanentemente' });
+    await ProductService.hardDeleteProduct(req.params.id);
+    res.json({ message: 'Producto eliminado permanentemente' });
   } catch (e) {
+    if (e.message === 'PRODUCT_NOT_FOUND') return handleErrorResponse(res, e.message, 404);
     handleHttpError(res, e);
   }
 };
