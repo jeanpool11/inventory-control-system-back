@@ -2,8 +2,13 @@ const { matchedData } = require('express-validator');
 const { handleErrorResponse, handleHttpError } = require('../utils/handleError');
 const UserService = require('../services/userService');
 
+// Solo admins pueden crear usuarios
 const createUser = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') {
+      return handleErrorResponse(res, 'NOT_ALLOWED', 403);
+    }
+
     const body = matchedData(req);
     const user = await UserService.createUser(body);
     return res.status(201).json({ data: user });
@@ -13,9 +18,14 @@ const createUser = async (req, res) => {
   }
 };
 
+// Admins pueden actualizar
 const updateUser = async (req, res) => {
   try {
-    const { id } = req.params;
+
+    if (req.user.role !== 'admin') {
+      return handleErrorResponse(res, 'NOT_ALLOWED', 403);
+    }
+
     const body = matchedData(req);
     const user = await UserService.updateUser(id, body);
     return res.json({ message: 'Usuario actualizado', data: user });
@@ -25,8 +35,13 @@ const updateUser = async (req, res) => {
   }
 };
 
-const getUsers = async (_req, res) => {
+// Solo admins pueden ver todos los usuarios activos
+const getUsers = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') {
+      return handleErrorResponse(res, 'NOT_ALLOWED', 403);
+    }
+
     const data = await UserService.getActiveUsers();
     return res.json({ data });
   } catch (e) {
@@ -34,8 +49,13 @@ const getUsers = async (_req, res) => {
   }
 };
 
+// Solo admins pueden hacer borrado lógico
 const softDeleteUser = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') {
+      return handleErrorResponse(res, 'NOT_ALLOWED', 403);
+    }
+
     await UserService.softDeleteUser(req.params.id);
     return res.json({ message: 'User eliminado lógicamente' });
   } catch (e) {
@@ -43,8 +63,13 @@ const softDeleteUser = async (req, res) => {
   }
 };
 
+// Solo admins pueden hacer borrado físico
 const hardDeleteUser = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') {
+      return handleErrorResponse(res, 'NOT_ALLOWED', 403);
+    }
+
     await UserService.hardDeleteUser(req.params.id);
     return res.json({ message: 'User eliminado permanentemente' });
   } catch (e) {

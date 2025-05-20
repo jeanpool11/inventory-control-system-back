@@ -3,6 +3,8 @@ const express    = require('express');
 const swaggerUi  = require('swagger-ui-express');
 const morganBody = require('morgan-body');
 const cors       = require('cors');
+const cookieParser = require('cookie-parser');
+
 
 const swaggerSpec  = require('../docs/swagger');
 const { loggerSlack } = require('../utils/handleLoger');
@@ -16,11 +18,18 @@ class Server {
   constructor({ routes }) {
     this.port = envs.PORT;                               // ② lee PORT desde envs
     this.app  = express();
+    
 
     /* ---------- Middlewares genéricos ---------- */
-    this.app.use(cors());
+    this.app.use(cookieParser());
+    this.app.use(cors({
+      origin: envs.FRONTEND_ORIGIN,
+      credentials: true,
+    }));
+    
     this.app.use(express.json());
     this.app.use(express.static('storage'));
+    
 
     morganBody(this.app, {
       skip: (_req, res) =>

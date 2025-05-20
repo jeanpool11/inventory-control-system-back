@@ -1,19 +1,17 @@
 const handleHttpError = (res, error) => {
-  console.log("Error", error);
-  res.status(500);
-  res.send({ error: "ERROR" });
+  const isDev = process.env.NODE_ENV !== 'production';
+
+  console.error('Error', error);
+
+  res.status(500).send({
+    error: 'INTERNAL_ERROR',
+    ...(isDev && { message: error.message, stack: error.stack }), // Solo en desarrollo
+  });
 };
 
-/**
- * Handle error specify
- * @param {*} res
- * @param {*} message
- * @param {*} code
- */
-const handleErrorResponse = (res, message = "Algo ocurrio", code = 401) => {
-  console.log("Error", message);
-  res.status(code);
-  res.send({ error: message });
+const handleErrorResponse = (res, message = 'Algo ocurrió', code = 401) => {
+  console.error('Error', message);
+  res.status(code).send({ error: message });
 };
 
 module.exports = { handleHttpError, handleErrorResponse };

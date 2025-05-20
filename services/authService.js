@@ -9,9 +9,11 @@ const loginUser = async (email, plainPassword) => {
   const isCorrect = await compare(plainPassword, user.password);
   if (!isCorrect) throw new Error('PASSWORD_INVALID');
 
-  const token = await tokenSign(user);
+  const token = await tokenSign({ _id: user._id, role: user.role });
 
-  return { token, user };
+  const { password, ...userSafe } = user; // lo haces aquí una sola vez
+
+  return { token, user: userSafe };
 };
 
 module.exports = { loginUser };
