@@ -19,4 +19,33 @@ const loginCtrl = async (req, res) => {
   }
 };
 
-module.exports = { loginCtrl };
+const checkAuthCtrl = async (req, res) => {
+  try {
+    // Si el middleware authMiddleware pasó, el usuario está autenticado
+    res.send({ 
+      data: {
+        user: req.user, // Info del usuario decodificada del token
+        authenticated: true
+      }
+    });
+  } catch (e) {
+    handleHttpError(res, e);
+  }
+};
+
+const logoutCtrl = (req, res) => {
+  // Eliminar la cookie del token
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'Strict'
+  });
+
+  // Respuesta exitosa
+  res.status(200).json({ 
+    message: 'Logout exitoso',
+    data: null
+  });
+};
+
+module.exports = { loginCtrl, checkAuthCtrl, logoutCtrl };

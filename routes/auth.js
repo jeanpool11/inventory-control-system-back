@@ -1,8 +1,9 @@
 // routes/auth.js
 const express = require('express');
 const router  = express.Router();
-const { loginCtrl }     = require('../controllers/authController');
+const { loginCtrl, checkAuthCtrl, logoutCtrl }     = require('../controllers/authController');
 const { validateLogin } = require('../validators/authValidators');
+const authMiddleware = require('../middlewares/authMiddleware');
 
 /**
  * @swagger
@@ -62,5 +63,8 @@ const { validateLogin } = require('../validators/authValidators');
  *         description: Usuario no existe
  */
 router.post('/login', validateLogin, loginCtrl);
+router.get('/check', authMiddleware, checkAuthCtrl); // Nueva ruta protegida
+router.post('/logout', authMiddleware, logoutCtrl);
+
 
 module.exports = router;

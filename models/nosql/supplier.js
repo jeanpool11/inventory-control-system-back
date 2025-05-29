@@ -4,9 +4,10 @@ const mongooseDelete = require("mongoose-delete");
 const SupplierSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    phone: { type: Number, required: true  },
+    phone: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     address: { type: String, required: true },
+    ruc: { type: String, required: true, unique: true, match: /^\d{11}$/ },
   },
   {
     timestamps: true,
@@ -14,6 +15,9 @@ const SupplierSchema = new mongoose.Schema(
   }
 );
 
-SupplierSchema.plugin(mongooseDelete, { overrideMethods: true, deletedAt: true });
+SupplierSchema.plugin(mongooseDelete, {
+  overrideMethods: true,
+  deletedAt: true,
+});
 
 module.exports = mongoose.model("supplier", SupplierSchema);
