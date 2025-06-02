@@ -3,13 +3,11 @@ require('dotenv').config();
 const envs         = require('../config/envs');        
 const express    = require('express');
 const swaggerUi  = require('swagger-ui-express');
-const morganBody = require('morgan-body');
 const cors       = require('cors');
 const cookieParser = require('cookie-parser');
 
 
 const swaggerSpec  = require('../docs/swagger');
-const { loggerSlack } = require('../utils/handleLogger');
 
 class Server {
   /**
@@ -33,12 +31,6 @@ class Server {
     this.app.use(express.json());
     this.app.use(express.static('storage'));
     
-
-    morganBody(this.app, {
-      skip: (_req, res) =>
-        [403, 404, 409, 401].includes(res.statusCode) || res.statusCode < 400,
-      stream: loggerSlack,
-    });
 
     /* ---------- Documentación Swagger ---------- */
     this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
