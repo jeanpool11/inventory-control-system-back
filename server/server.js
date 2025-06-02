@@ -1,4 +1,6 @@
 // server/server.js
+require('dotenv').config(); 
+const envs         = require('../config/envs');        
 const express    = require('express');
 const swaggerUi  = require('swagger-ui-express');
 const morganBody = require('morgan-body');
@@ -8,7 +10,6 @@ const cookieParser = require('cookie-parser');
 
 const swaggerSpec  = require('../docs/swagger');
 const { loggerSlack } = require('../utils/handleLogger');
-const envs         = require('../config/envs');          // ① variables centralizadas
 
 class Server {
   /**
@@ -26,7 +27,9 @@ class Server {
       origin: envs.FRONTEND_ORIGIN,
       credentials: true,
     }));
-    
+    console.log("FRONTEND_ORIGIN: " + envs.FRONTEND_ORIGIN)
+
+
     this.app.use(express.json());
     this.app.use(express.static('storage'));
     

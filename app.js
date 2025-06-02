@@ -1,3 +1,4 @@
+require('dotenv').config(); 
 const envs            = require('./config/envs');     // ← lee .env UNA vez
 const MongoDataSource = require('./config/mongo');
 const Server          = require('./server/server');
