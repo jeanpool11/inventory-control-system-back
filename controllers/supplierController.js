@@ -1,61 +1,78 @@
 const { matchedData } = require('express-validator');
-const { handleHttpError, handleErrorResponse } = require('../utils/handleError');
+const { throwError, handleError } = require('../errors');
 const SupplierService = require('../services/supplierService');
+const { NOT_ALLOWED } = require('../errors/supplierError');
 
-/* Crear proveedor */
 const createSupplier = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') throwError(NOT_ALLOWED);
     const body = matchedData(req);
     const data = await SupplierService.createSupplier(body);
-    return res.status(201).json({ data });
+    res.status(201).json({ data });
   } catch (e) {
-    if (e.message === 'SUPPLIER_EXISTS') return handleErrorResponse(res, e.message, 409);
-    handleHttpError(res, e);
+    handleError(res, e);
   }
 };
 
-/* Actualizar proveedor */
 const updateSupplier = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') throwError(NOT_ALLOWED);
     const body = matchedData(req);
     const { id } = req.params;
     const data = await SupplierService.updateSupplier(id, body);
-    return res.json({ message: 'Proveedor actualizado', data });
+    res.json({ message: 'Proveedor actualizado', data });
   } catch (e) {
-    if (e.message === 'SUPPLIER_NOT_FOUND') return handleErrorResponse(res, e.message, 404);
-    handleHttpError(res, e);
+    handleError(res, e);
   }
 };
 
-/* Listar proveedores */
-const getSuppliers = async (_req, res) => {
+const getSuppliers = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') throwError(NOT_ALLOWED);
     const data = await SupplierService.getActiveSuppliers();
-    return res.json({ data });
+    res.json({ data });
   } catch (e) {
-    handleHttpError(res, e);
+    handleError(res, e);
   }
 };
 
-/* Eliminación lógica */
+const getAllSuppliers = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') throwError(NOT_ALLOWED);
+    const data = await SupplierService.getAllSuppliers();
+    res.json({ data });
+  } catch (e) {
+    handleError(res, e);
+  }
+};
+
+const restoreSupplier = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') throwError(NOT_ALLOWED);
+    const data = await SupplierService.restoreSupplier(req.params.id);
+    res.json({ message: 'Proveedor reactivado', data });
+  } catch (e) {
+    handleError(res, e);
+  }
+};
+
 const softDeleteSupplier = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') throwError(NOT_ALLOWED);
     await SupplierService.softDeleteSupplier(req.params.id);
-    return res.json({ message: 'Proveedor eliminado lógicamente' });
+    res.json({ message: 'Proveedor desactivado' });
   } catch (e) {
-    if (e.message === 'SUPPLIER_NOT_FOUND') return handleErrorResponse(res, e.message, 404);
-    handleHttpError(res, e);
+    handleError(res, e);
   }
 };
 
-/* Eliminación física */
 const hardDeleteSupplier = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') throwError(NOT_ALLOWED);
     await SupplierService.hardDeleteSupplier(req.params.id);
-    return res.json({ message: 'Proveedor eliminado permanentemente' });
+    res.json({ message: 'Proveedor eliminado permanentemente' });
   } catch (e) {
-    if (e.message === 'SUPPLIER_NOT_FOUND') return handleErrorResponse(res, e.message, 404);
-    handleHttpError(res, e);
+    handleError(res, e);
   }
 };
 
@@ -63,6 +80,8 @@ module.exports = {
   createSupplier,
   updateSupplier,
   getSuppliers,
+  getAllSuppliers,
+  restoreSupplier,
   softDeleteSupplier,
-  hardDeleteSupplier,
+  hardDeleteSupplier
 };

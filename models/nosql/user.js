@@ -22,4 +22,4 @@ UserSchema.plugin(mongooseDelete, {
   use$neOperator: false // Importante para consultas inclusivas
 });
 
-module.exports = mongoose.model("user", UserSchema);
+module.exports = mongoose.model("User", UserSchema);

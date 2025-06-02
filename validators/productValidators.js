@@ -34,7 +34,6 @@ const validateRegisterProduct = [
     .notEmpty().withMessage("El stock máximo no debe estar vacío.")
     .isInt({ min: 0 }).withMessage("El stock máximo debe ser un número entero mayor o igual a 0."),
 
-  // Validación cruzada: maxStock debe ser mayor o igual que minStock
   body().custom((body) => {
     if (body.minStock > body.maxStock) {
       throw new Error("El stock máximo debe ser mayor o igual al stock mínimo.");
@@ -50,4 +49,51 @@ const validateRegisterProduct = [
   (req, res, next) => validateResult(req, res, next),
 ];
 
-module.exports = { validateRegisterProduct };
+const validateUpdateProduct = [
+  check("code")
+    .optional()
+    .notEmpty().withMessage("El código no debe estar vacío.")
+    .isString().withMessage("El código debe ser una cadena de texto."),
+
+  check("name")
+    .optional().notEmpty().withMessage("El nombre no debe estar vacío."),
+
+  check("description")
+    .optional().notEmpty().withMessage("La descripción no debe estar vacía."),
+
+  check("price")
+    .optional()
+    .notEmpty().withMessage("El precio no debe estar vacío.")
+    .isNumeric().withMessage("El precio debe ser un número."),
+
+  check("stock")
+    .optional()
+    .notEmpty().withMessage("El stock no debe estar vacío.")
+    .isInt({ min: 0 }).withMessage("El stock debe ser un número entero mayor o igual a 0."),
+
+  check("minStock")
+    .optional()
+    .notEmpty().withMessage("El stock mínimo no debe estar vacío.")
+    .isInt({ min: 0 }).withMessage("El stock mínimo debe ser un número entero mayor o igual a 0."),
+
+  check("maxStock")
+    .optional()
+    .notEmpty().withMessage("El stock máximo no debe estar vacío.")
+    .isInt({ min: 0 }).withMessage("El stock máximo debe ser un número entero mayor o igual a 0."),
+
+  body().custom((body) => {
+    if (body.minStock !== undefined && body.maxStock !== undefined && body.minStock > body.maxStock) {
+      throw new Error("El stock máximo debe ser mayor o igual al stock mínimo.");
+    }
+    return true;
+  }),
+
+  check("supplier")
+    .optional()
+    .notEmpty().withMessage("El proveedor no debe estar vacío.")
+    .custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage("El ID de proveedor no es válido."),
+
+  (req, res, next) => validateResult(req, res, next),
+];
+
+module.exports = { validateRegisterProduct, validateUpdateProduct };

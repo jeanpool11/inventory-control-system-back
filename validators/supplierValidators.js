@@ -10,4 +10,13 @@ const validateRegisterSupplier = [
   (req, res, next) => validateResult(req, res, next),
 ];
 
-module.exports = { validateRegisterSupplier };
+const validateUpdateSupplier = [
+  check("name").optional().notEmpty(),
+  check("phone").optional().notEmpty(),
+  check("email").optional().notEmpty().isEmail(),
+  check("address").optional().notEmpty(),
+  check("ruc").optional().notEmpty().isString().isLength({ min: 11, max: 11 }),
+  (req, res, next) => validateResult(req, res, next),
+];
+
+module.exports = { validateRegisterSupplier, validateUpdateSupplier };

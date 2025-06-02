@@ -21,4 +21,12 @@ const loginUser = async (email, plainPassword) => {
   return { token, user: userSafe };
 };
 
-module.exports = { loginUser };
+const getUserFromToken = async (userId) => {
+  const user = await UserRepository.findById(userId);
+  if (!user) return null;
+
+  const { password, ...userSafe } = user;
+  return userSafe;
+};
+
+module.exports = { loginUser, getUserFromToken };

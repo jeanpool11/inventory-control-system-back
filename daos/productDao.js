@@ -15,13 +15,14 @@ class ProductDao {
   static existsCodeExceptId(code, id) {
     return ProductModel.findOne({ code, _id: { $ne: id } }).lean();
   }
-
-  static findActiveWithSupplier() {
-    return ProductModel.find({ deleted: { $ne: true } })
-                       .populate('supplier')
-                       .lean();
+  
+  static findAllWithSupplier() {
+    return ProductModel.findWithDeleted({})
+      .populate({ path: "supplier", options: { withDeleted: true } })
+      .sort({ createdAt: -1 })
+      .lean();
   }
-
+  
   /* ---------- Escritura ---------- */
 
   static create(data) {
@@ -43,6 +44,10 @@ class ProductDao {
 
   static hardDeleteById(id) {
     return ProductModel.deleteOne({ _id: id });
+  }
+
+  static restoreById(id) {
+    return ProductModel.restore({ _id: id });
   }
 
   /* ---------- Stock helpers ---------- */

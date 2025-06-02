@@ -20,4 +20,4 @@ SupplierSchema.plugin(mongooseDelete, {
   deletedAt: true,
 });
 
-module.exports = mongoose.model("supplier", SupplierSchema);
+module.exports = mongoose.model("Supplier", SupplierSchema);

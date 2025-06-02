@@ -15,16 +15,21 @@ const loginCtrl = async (req, res) => {
     if (e.message === 'USER_NOT_EXISTS') return handleErrorResponse(res, e.message, 404);
     if (e.message === 'PASSWORD_INVALID') return handleErrorResponse(res, e.message, 402);
 
-    handleHttpError(res, e); // ✅ Manejo general de errores consistente
+    handleHttpError(res, e);
   }
 };
 
 const checkAuthCtrl = async (req, res) => {
   try {
-    // Si el middleware authMiddleware pasó, el usuario está autenticado
-    res.send({ 
+    const user = await AuthService.getUserFromToken(req.user._id);
+
+    if (!user) {
+      return res.status(401).send({ data: { authenticated: false } });
+    }
+
+    res.send({
       data: {
-        user: req.user, // Info del usuario decodificada del token
+        user,
         authenticated: true
       }
     });
@@ -34,14 +39,12 @@ const checkAuthCtrl = async (req, res) => {
 };
 
 const logoutCtrl = (req, res) => {
-  // Eliminar la cookie del token
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'Strict'
   });
 
-  // Respuesta exitosa
   res.status(200).json({ 
     message: 'Logout exitoso',
     data: null

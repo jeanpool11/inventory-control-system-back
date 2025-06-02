@@ -27,7 +27,7 @@ const ProductSchema = new mongoose.Schema(
 
     supplier: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "supplier",
+      ref: "Supplier",
       required: true,
     },
   },
@@ -39,4 +39,4 @@ const ProductSchema = new mongoose.Schema(
 
 ProductSchema.plugin(mongooseDelete, { overrideMethods: true, deletedAt: true });
 
-module.exports = mongoose.model("product", ProductSchema);
+module.exports = mongoose.model("Product", ProductSchema);

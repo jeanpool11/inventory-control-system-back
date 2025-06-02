@@ -1,17 +1,44 @@
-const handleHttpError = (res, error) => {
-  const isDev = process.env.NODE_ENV !== 'production';
+const { loggerSlack } = require("./handleLogger");
 
-  console.error('Error', error);
+const handleHttpError = (res, error, statusCode = 500) => {
+  const timestamp = new Date().toString();
+  const stackTrace = error.stack || "No stack";
 
-  res.status(500).send({
-    error: 'INTERNAL_ERROR',
-    ...(isDev && { message: error.message, stack: error.stack }), // Solo en desarrollo
+  const formatted = {
+    timestamp,
+    status: statusCode,
+    error: error.code || "INTERNAL_ERROR",
+    message: error.message || "Error interno del servidor",
+    stack: stackTrace.split('\n').slice(0, 5).join('\n'), // mostrar primeras 5 líneas
+  };
+
+  const output = JSON.stringify(formatted, null, 2);
+  loggerSlack.write(`ERROR Response Body:\n${output}`);
+
+  return res.status(statusCode).json({
+    error: formatted.error,
+    message: formatted.message,
   });
 };
 
-const handleErrorResponse = (res, message = 'Algo ocurrió', code = 401) => {
-  console.error('Error', message);
-  res.status(code).send({ error: message });
+const handleErrorResponse = (res, code, status = 400) => {
+  const response = {
+    error: code,
+    message: code.replace(/_/g, " ").toLowerCase(),
+  };
+
+  loggerSlack.write(`ERROR Response Body:\n${JSON.stringify(response, null, 2)}`);
+  res.status(status).json(response);
 };
 
-module.exports = { handleHttpError, handleErrorResponse };
+const throwError = (code, message = null) => {
+  const error = new Error(message || code);
+  error.code = code;
+  throw error;
+};
+
+module.exports = {
+  handleHttpError,
+  handleErrorResponse,
+  throwError,
+};

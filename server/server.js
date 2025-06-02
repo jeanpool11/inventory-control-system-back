@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser');
 
 
 const swaggerSpec  = require('../docs/swagger');
-const { loggerSlack } = require('../utils/handleLoger');
+const { loggerSlack } = require('../utils/handleLogger');
 const envs         = require('../config/envs');          // ① variables centralizadas
 
 class Server {

@@ -1,38 +1,46 @@
 const generalError = require('./generalError');
 const userError = require('./userError');
 const supplierError = require('./supplierError');
+const productError = require('./productError'); // si aún no estaba
+const { loggerSlack } = require('../utils/handleLogger');
 
 module.exports = {
-    ...generalError,
-    ...userError,
-    ...supplierError,
-    
-    throwError: (errorType, additionalInfo = null) => {
-        const error = new Error(errorType.message);
-        error.code = errorType.code;
-        error.status = errorType.status;
-        error.additional = additionalInfo;
-        throw error;
-    },
-    
-    handleError: (res, error) => {
-        const isDev = process.env.NODE_ENV !== 'production';
-        
-        if (error.status) {
-            return res.status(error.status).json({
-                error: error.code || 'UNKNOWN_ERROR',
-                message: error.message,
-                ...(isDev && { stack: error.stack }),
-                ...(error.additional && { details: error.additional })
-            });
-        }
-        
-        // Error no controlado
-        console.error('Unhandled Error:', error);
-        res.status(500).json({
-            error: 'INTERNAL_ERROR',
-            message: 'Error interno del servidor',
-            ...(isDev && { stack: error.stack })
-        });
-    }
+  ...generalError,
+  ...userError,
+  ...supplierError,
+  ...productError, // incluir errores del producto
+
+  throwError: (errorType, additionalInfo = null) => {
+    const error = new Error(errorType.message);
+    error.code = errorType.code;
+    error.status = errorType.status;
+    error.additional = additionalInfo;
+    throw error;
+  },
+
+  handleError: (res, error) => {
+    const isDev = process.env.NODE_ENV !== 'production';
+
+    const logPayload = {
+      time: new Date().toString(),
+      status: error.status || 500,
+      error: error.code || 'INTERNAL_ERROR',
+      message: error.message || 'Error interno del servidor',
+      ...(error.additional && { details: error.additional }),
+      ...(isDev && { stack: error.stack }),
+    };
+
+    // Logueo en consola y/o Slack
+    loggerSlack.write(`ERROR Response Body:\n${JSON.stringify(logPayload, null, 2)}`);
+
+    // Envío al cliente
+    const clientResponse = {
+      error: logPayload.error,
+      message: logPayload.message,
+      ...(isDev && { stack: error.stack }),
+      ...(error.additional && { details: error.additional }),
+    };
+
+    res.status(error.status || 500).json(clientResponse);
+  }
 };
