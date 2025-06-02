@@ -7,7 +7,7 @@ const setTokenCookie = (res, token) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
+      sameSite: 'None',
       maxAge: 1000 * 60 * 60 * 2, // 2 horas
     });
   };

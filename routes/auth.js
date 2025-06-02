@@ -63,7 +63,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
  *         description: Usuario no existe
  */
 router.post('/login', validateLogin, loginCtrl);
-router.get('/check', authMiddleware, checkAuthCtrl); // Nueva ruta protegida
+router.get('/check', authMiddleware, checkAuthCtrl);
 router.post('/logout', authMiddleware, logoutCtrl);
 
 
