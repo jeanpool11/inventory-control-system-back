@@ -1,4 +1,3 @@
-const { loggerSlack } = require("./handleLogger");
 
 const handleHttpError = (res, error, statusCode = 500) => {
   const timestamp = new Date().toString();
@@ -13,7 +12,6 @@ const handleHttpError = (res, error, statusCode = 500) => {
   };
 
   const output = JSON.stringify(formatted, null, 2);
-  loggerSlack.write(`ERROR Response Body:\n${output}`);
 
   return res.status(statusCode).json({
     error: formatted.error,
@@ -27,7 +25,6 @@ const handleErrorResponse = (res, code, status = 400) => {
     message: code.replace(/_/g, " ").toLowerCase(),
   };
 
-  loggerSlack.write(`ERROR Response Body:\n${JSON.stringify(response, null, 2)}`);
   res.status(status).json(response);
 };
 

@@ -2,7 +2,6 @@ const generalError = require('./generalError');
 const userError = require('./userError');
 const supplierError = require('./supplierError');
 const productError = require('./productError'); // si aún no estaba
-const { loggerSlack } = require('../utils/handleLogger');
 
 module.exports = {
   ...generalError,
@@ -30,8 +29,7 @@ module.exports = {
       ...(isDev && { stack: error.stack }),
     };
 
-    // Logueo en consola y/o Slack
-    loggerSlack.write(`ERROR Response Body:\n${JSON.stringify(logPayload, null, 2)}`);
+
 
     // Envío al cliente
     const clientResponse = {
