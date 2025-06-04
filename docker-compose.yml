@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: inventory_backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_URI=mongodb+srv://usuario:credenciales@cluster0.erih0bb.mongodb.net/inventory?retryWrites=true&w=majority&appName=Cluster0
+      - DB_ENGINE=nosql
+      - JWT_SECRET=tu_jwt_secreto
+      - FRONTEND_DEV_ORIGIN=http://localhost:4200
+      - FRONTEND_PROD_ORIGIN=https://miapp.com
+    volumes:
+      - .:/app
+    restart: unless-stopped

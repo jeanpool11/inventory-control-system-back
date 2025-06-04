@@ -1,45 +1,36 @@
 const { ProductModel } = require('../models');
 
 class ProductDao {
-  /* ---------- Lectura ---------- */
-
-  /** Devuelve un producto por su _id */
   static findById(id) {
-    return ProductModel.findById(id).lean();
+    return ProductModel.findById(id).populate('supplier');
   }
 
   static findByCode(code) {
-    return ProductModel.findOne({ code }).lean();
+    return ProductModel.findOne({ code });
   }
 
   static existsCodeExceptId(code, id) {
-    return ProductModel.findOne({ code, _id: { $ne: id } }).lean();
+    return ProductModel.exists({ code, _id: { $ne: id } });
   }
-  
+
+  static findActiveWithSupplier() {
+    return ProductModel.find({ deleted: false }).populate('supplier').lean();
+  }
+
   static findAllWithSupplier() {
-    return ProductModel.findWithDeleted({})
-      .populate({ path: "supplier", options: { withDeleted: true } })
-      .sort({ createdAt: -1 })
-      .lean();
+    return ProductModel.find().populate('supplier').lean();
   }
-  
-  /* ---------- Escritura ---------- */
 
   static create(data) {
     return ProductModel.create(data);
   }
 
   static updateById(id, update) {
-    return ProductModel.findByIdAndUpdate(id, update, {
-      new: true,
-      runValidators: true,
-    }).lean();
+    return ProductModel.findByIdAndUpdate(id, update, { new: true });
   }
 
-  /* ---------- Eliminación ---------- */
-
   static softDeleteById(id) {
-    return ProductModel.delete({ _id: id });
+    return ProductModel.findByIdAndUpdate(id, { deleted: true }, { new: true });
   }
 
   static hardDeleteById(id) {
@@ -47,25 +38,15 @@ class ProductDao {
   }
 
   static restoreById(id) {
-    return ProductModel.restore({ _id: id });
+    return ProductModel.findByIdAndUpdate(id, { deleted: false }, { new: true });
   }
 
-  /* ---------- Stock helpers ---------- */
-
   static increaseStock(id, qty) {
-    return ProductModel.findByIdAndUpdate(
-      id,
-      { $inc: { stock: qty } },
-      { new: true, runValidators: true },
-    ).lean();
+    return ProductModel.findByIdAndUpdate(id, { $inc: { stock: qty } }, { new: true });
   }
 
   static decreaseStock(id, qty) {
-    return ProductModel.findByIdAndUpdate(
-      id,
-      { $inc: { stock: -qty } },
-      { new: true, runValidators: true },
-    ).lean();
+    return ProductModel.findByIdAndUpdate(id, { $inc: { stock: -qty } }, { new: true });
   }
 }
 

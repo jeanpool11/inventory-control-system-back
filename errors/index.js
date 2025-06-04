@@ -1,13 +1,15 @@
 const generalError = require('./generalError');
 const userError = require('./userError');
 const supplierError = require('./supplierError');
-const productError = require('./productError'); // si aún no estaba
+const productError = require('./productError');
+const operationError = require('./operationError');
 
 module.exports = {
   ...generalError,
   ...userError,
   ...supplierError,
-  ...productError, // incluir errores del producto
+  ...productError,
+  ...operationError,
 
   throwError: (errorType, additionalInfo = null) => {
     const error = new Error(errorType.message);

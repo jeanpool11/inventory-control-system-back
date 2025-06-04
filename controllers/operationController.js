@@ -3,7 +3,6 @@ const {
   handleHttpError,
   handleErrorResponse,
 } = require('../utils/handleError');
-
 const OperationService = require('../services/operationService');
 
 const createOperation = async (req, res) => {
@@ -34,7 +33,48 @@ const getOperations = async (_req, res) => {
   }
 };
 
+const deleteOperation = async (req, res) => {
+  try {
+    const result = await OperationService.deleteOperationPermanently(req.params.id);
+    res.json(result);
+  } catch (e) {
+    handleHttpError(res, e);
+  }
+};
+
+const softDeleteOperation = async (req, res) => {
+  try {
+    const result = await OperationService.softDeleteOperation(req.params.id);
+    res.json(result);
+  } catch (e) {
+    handleHttpError(res, e);
+  }
+};
+
+const restoreOperation = async (req, res) => {
+  try {
+    const result = await OperationService.restoreOperation(req.params.id);
+    res.json(result);
+  } catch (e) {
+    handleHttpError(res, e);
+  }
+};
+
+const getAllOperations = async (_req, res) => {
+  try {
+    const data = await OperationService.getAllOperations();
+    res.json({ data });
+  } catch (e) {
+    handleHttpError(res, e);
+  }
+};
+
+
 module.exports = {
   createOperation,
   getOperations,
+  deleteOperation,
+  softDeleteOperation,
+  restoreOperation,
+  getAllOperations
 };

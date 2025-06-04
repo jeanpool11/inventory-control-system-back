@@ -15,7 +15,7 @@ const OperationSchema = new mongoose.Schema(
     },
     product: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "product",
+      ref: "Product",
       required: true,
     },
     quantity: {
@@ -26,6 +26,10 @@ const OperationSchema = new mongoose.Schema(
     description: {
       type: String,
       required: true
+    },
+    deleted: { // ← NUEVO CAMPO
+      type: Boolean,
+      default: false
     }
   },
   {
@@ -34,4 +38,4 @@ const OperationSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("operation", OperationSchema);
+module.exports = mongoose.model("Operation", OperationSchema);
