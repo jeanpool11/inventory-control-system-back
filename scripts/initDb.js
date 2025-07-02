@@ -16,8 +16,8 @@ const Operation = require("../models/nosql/operation");
       const userData = {
         name: "Administrador",
         phone: "987654321",
-        email: "admin@correo.com",
-        password: await encrypt("claveSegura1"), // 13 caracteres
+        email: "admin@techtronics.com",
+        password: await encrypt("claveSegura8-2"), 
         role: "admin"
       };
 

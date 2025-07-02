@@ -18,7 +18,10 @@ class ProductDao {
   }
 
   static findAllWithSupplier() {
-    return ProductModel.find().populate('supplier').lean();
+    return ProductModel.findWithDeleted() // ← trae activos + eliminados
+      .sort({ createdAt: -1 })            // ← orden del más reciente al más antiguo
+      .populate('supplier')
+      .lean();
   }
 
   static create(data) {
@@ -30,17 +33,18 @@ class ProductDao {
   }
 
   static softDeleteById(id) {
-    return ProductModel.findByIdAndUpdate(id, { deleted: true }, { new: true });
+    return ProductModel.delete({ _id: id });
   }
+  
 
   static hardDeleteById(id) {
     return ProductModel.deleteOne({ _id: id });
   }
 
   static restoreById(id) {
-    return ProductModel.findByIdAndUpdate(id, { deleted: false }, { new: true });
+    return ProductModel.restore({ _id: id });
   }
-
+  
   static increaseStock(id, qty) {
     return ProductModel.findByIdAndUpdate(id, { $inc: { stock: qty } }, { new: true });
   }
