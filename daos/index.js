@@ -3,5 +3,6 @@ module.exports = {
     UserDao: require('./userDao'),
     SupplierDao: require('./supplierDao'),
     ProductDao: require('./productDao'),
-    OperationDao: require('./operationDao')
+    OperationDao: require('./operationDao'),
+    DashboardDao: require('./dashboardDao')
 };

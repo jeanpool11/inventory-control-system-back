@@ -7,6 +7,7 @@ const repositories = {
   SupplierRepository: require(`${pathRepo}/supplierRepository`),
   ProductRepository: require(`${pathRepo}/productRepository`),
   OperationRepository: require(`${pathRepo}/operationRepository`),
+  DashboardRepository: require(`${pathRepo}/dashboardRepository`)
 };
 
 module.exports = repositories;
