@@ -7,7 +7,8 @@ const setTokenCookie = (res, token) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'https://merry-zabaione-4d35d2.netlify.app',
+      sameSite: 'None', // ← Permite cookies entre sitios
+      domain: 'merry-zabaione-4d35d2.netlify.app', // ← Pon aquí el dominio base compartido
       maxAge: 1000 * 60 * 60 * 2, // 2 horas
     });
   };
